@@ -278,10 +278,10 @@
     on('obsolete',     handleNetworkObsolete);
 
     // fired when manifest download succeeded
-    on('noupdate',     handleNetworkSucces);
-    on('cached',       handleNetworkSucces);
-    on('progress',     handleNetworkSucces);
-    on('downloading',  handleNetworkSucces);
+    on('noupdate',     handleNetworkSuccess);
+    on('cached',       handleNetworkSuccess);
+    on('progress',     handleNetworkSuccess);
+    on('downloading',  handleNetworkSuccess);
 
     // when browser goes online/offline, look for updates to make sure.
     addEventListener('online', appCacheNanny.update, false);
@@ -299,9 +299,9 @@
   // Trigger event on appCacheNanny. Once an update is ready, we
   // keep looking for another update, but we stop triggering events.
   //
-  function trigger(eventName) {
+  function trigger(eventName, event) {
     if (hasUpdateFlag) return;
-    appCacheNanny.trigger(eventName);
+    appCacheNanny.trigger(eventName, event);
   }
 
   //
@@ -332,7 +332,7 @@
   //
   //
   //
-  function handleNetworkSucces(event) {
+  function handleNetworkSuccess(event) {
     var prefix = '';
 
     // when page gets opened for the very first time, it already has
@@ -352,7 +352,7 @@
       trigger('updateready')
       pendingUpdateReady = false
     } else {
-      trigger(prefix + event.type);
+      trigger(prefix + event.type, event);
     }
 
     if (! hasNetworkError) return;
@@ -365,9 +365,9 @@
   //
   //
   //
-  function handleNetworkError () {
+  function handleNetworkError (error) {
     // re-trigger event via appCacheNanny
-    trigger('error');
+    trigger('error', error);
 
     if (hasNetworkError) return;
     hasNetworkError = true;
