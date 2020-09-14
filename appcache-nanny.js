@@ -59,12 +59,14 @@
 
   var DEFAULT_MANIFEST_LOADER_PATH = '/appcache-loader.html';
   var DEFAULT_CHECK_INTERVAL = 30000;
+  var DEFAULT_SILENT_WHEN_UPDATE_READY = true
 
   var appCacheNanny = new Events();
   var nannyOptions = {
     loaderPath: DEFAULT_MANIFEST_LOADER_PATH,
     checkInterval: DEFAULT_CHECK_INTERVAL,
-    offlineCheckInterval: DEFAULT_CHECK_INTERVAL
+    offlineCheckInterval: DEFAULT_CHECK_INTERVAL,
+    silentWhenUpdateReady: DEFAULT_SILENT_WHEN_UPDATE_READY,
   };
 
   var iframe;
@@ -112,9 +114,9 @@
   appCacheNanny.start = function start(options) {
     if (options) appCacheNanny.set(options);
 
-    if (! setupDone) {
+    if (!setupDone) {
       setupCallbacks.push(appCacheNanny.start);
-      if (! setupPending) {
+      if (!setupPending) {
         setup();
         setupPending = true;
       }
@@ -158,7 +160,7 @@
   //
   //
   //
-  appCacheNanny.set = function setOption(key,  value) {
+  appCacheNanny.set = function setOption(key, value) {
     var property, newSettings;
     if (typeof key === 'object') {
       newSettings = key;
@@ -214,11 +216,11 @@
     var scriptTag;
 
     try {
-      isInitialDownload = ! localStorage.getItem(APPCACHE_STORE_KEY);
+      isInitialDownload = !localStorage.getItem(APPCACHE_STORE_KEY);
       localStorage.setItem(APPCACHE_STORE_KEY, '1');
     } catch(e) {}
 
-    if (! appCacheNanny.isSupported()) {
+    if (!appCacheNanny.isSupported()) {
       appCacheNanny.update = noop;
       return;
     }
@@ -271,17 +273,17 @@
 
     // fired when manifest download request failed
     // (no connection or 5xx server response)
-    on('error',        handleNetworkError);
+    on('error', handleNetworkError);
 
     // fired when manifest download request succeeded
     // but server returned 404 / 410
-    on('obsolete',     handleNetworkObsolete);
+    on('obsolete', handleNetworkObsolete);
 
     // fired when manifest download succeeded
-    on('noupdate',     handleNetworkSuccess);
-    on('cached',       handleNetworkSuccess);
-    on('progress',     handleNetworkSuccess);
-    on('downloading',  handleNetworkSuccess);
+    on('noupdate', handleNetworkSuccess);
+    on('cached', handleNetworkSuccess);
+    on('progress', handleNetworkSuccess);
+    on('downloading', handleNetworkSuccess);
 
     // when browser goes online/offline, look for updates to make sure.
     addEventListener('online', appCacheNanny.update, false);
@@ -300,7 +302,7 @@
   // keep looking for another update, but we stop triggering events.
   //
   function trigger(eventName, event) {
-    if (hasUpdateFlag) return;
+    if (hasUpdateFlag && appCacheNanny.get('silentWhenUpdateReady')) return;
     appCacheNanny.trigger(eventName, event);
   }
 
@@ -321,11 +323,14 @@
       return;
     }
 
-    if (! hasUpdateFlag) {
-      hasUpdateFlag = true;
-      // don't use trigger here, otherwise the event wouldn't get triggered
-      appCacheNanny.trigger('updateready');
+    if (!hasUpdateFlag || !appCacheNanny.get('silentWhenUpdateReady')) {
+      appCacheNanny.trigger('updateready')
     }
+
+    if (!hasUpdateFlag) {
+      hasUpdateFlag = true
+    }
+
     applicationCache.swapCache();
   }
 
@@ -355,7 +360,7 @@
       trigger(prefix + event.type, event);
     }
 
-    if (! hasNetworkError) return;
+    if (!hasNetworkError) return;
     hasNetworkError = false;
 
     appCacheNanny.start();
