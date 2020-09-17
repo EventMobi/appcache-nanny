@@ -1,13 +1,11 @@
 {
-  "name": "appcache-nanny",
-  "version": "1.1.1",
+  "name": "@eventmobi/appcache-nanny",
+  "version": "1.0.0",
   "description": "Teaches the applicationCache douchebag some manners!",
   "main": "appcache-nanny.js",
   "scripts": {
     "test": "node ./bin/test-browser.js",
-    "start": "node ./bin/dev-server.js",
-    "prepublish": "semantic-release pre",
-    "postpublish": "semantic-release post"
+    "start": "node ./bin/dev-server.js"
   },
   "repository": {
     "type": "git",
